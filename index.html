@@ -983,9 +983,9 @@ function frame3(dt,now){
       if(mining.p>=1){ breakBlock3(c); mining=null; crackMesh.visible=false; if(ptr.down) setTimeout(()=>{ if(ptr.down) tryMine(); },140); else hand_.classList.remove('swing'); } } }
   const ml=$('#mineMe');
   if(mineMark&&minedCount===0&&sNow<.4&&cells.has(mineMark.k)){ const [mx,my]=screenOf(mineMark.x,mineMark.y+.7,mineMark.z); ml.style.left=mx+'px'; ml.style.top=my+'px'; ml.classList.remove('hidden'); if(innerWidth<700){ const hb=$('#mineHint').getBoundingClientRect(), lb=ml.getBoundingClientRect(); if(lb.bottom>hb.top-4&&lb.top<hb.bottom&&lb.right>hb.left&&lb.left<hb.right) ml.style.top=(hb.top-8)+'px'; }
-    if(!mining&&!(ptr.inside&&!isTouch)){ selBox.visible=true; selBox.position.set(mineMark.x,mineMark.y,mineMark.z); selBox.material.opacity=.35+.6*Math.abs(Math.sin(now/300)); selBox.material.color.set('#ffffff'); } }
+    if(!mining&&!(ptr.inside&&!isTouch)){ selBox.scale.set(1,1,1); selBox.rotation.y=0; selBox.visible=true; selBox.position.set(mineMark.x,mineMark.y,mineMark.z); selBox.material.opacity=.35+.6*Math.abs(Math.sin(now/300)); selBox.material.color.set('#ffffff'); } }
   else { ml.classList.add('hidden'); selBox.material.color.set('#000000'); selBox.material.opacity=.65; }
-  if(!isTouch&&ptr.inside&&!guiOpen()&&now-lastHover>70){ lastHover=now; const c=pick(ptr.x,ptr.y); if(c&&c.t!=='bedrock'&&!c.sign){ selBox.visible=true; selBox.position.set(c.x,c.y,c.z); const bp=BP[c.t]; if(bp&&bp.special) showTip({clientX:ptr.x,clientY:ptr.y},null,{name:bp.name,hint:bp.hint}); else hideTip(); } else { selBox.visible=false; hideTip(); } }
+  if(!isTouch&&ptr.inside&&!guiOpen()&&now-lastHover>70){ lastHover=now; const c=pick(ptr.x,ptr.y); if(c&&c.sign){ const dm=c.board.userData.dims; selBox.visible=true; selBox.position.set(c.x,c.y,c.z); selBox.scale.set(dm[0],dm[1],.25); selBox.rotation.y=STATIONS[c.st].group.rotation.y; hideTip(); } else if(c&&c.t!=='bedrock'){ selBox.scale.set(1,1,1); selBox.rotation.y=0; selBox.visible=true; selBox.position.set(c.x,c.y,c.z); const bp=BP[c.t]; if(bp&&bp.special) showTip({clientX:ptr.x,clientY:ptr.y},null,{name:bp.name,hint:bp.hint}); else hideTip(); } else { selBox.visible=false; hideTip(); } }
   // falling bits
   bits=bits.filter(m=>{ m.userData.v.y-=9.8*dt; m.position.addScaledVector(m.userData.v,dt); m.userData.life-=dt*1.4; if(m.userData.life<=0){ scene.remove(m); m.geometry.dispose(); m.material.dispose(); return false; } return true; });
   renderer.render(scene,cam);
@@ -1187,23 +1187,23 @@ function daysToGo(){ const d=Math.ceil((new Date(2027,1,5)-new Date())/86400000)
 function drawLogoDrop(cv,width,t){ // the RiceCraft logo, with each block falling into place
   drawLogo(cv,width); if(t>=1) return; const g=cv.getContext('2d'), img=mk(cv.width,cv.height); img.getContext('2d').drawImage(cv,0,0); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,cv.width,cv.height);
   const cols=Math.ceil(cv.width/24); for(let c=0;c<cols;c++){ const delay=(c/cols)*.55, k=clamp((t-delay)/.45,0,1), e=1-Math.pow(1-k,3), off=(1-e)*-cv.height*1.4; if(k<=0) continue; g.drawImage(img,c*24,0,24,cv.height,c*24,off,24,cv.height); } }
-let lameP=0, lameT0=0;
-function lameCam(now){ const max=Math.max(1,document.documentElement.scrollHeight-innerHeight); const p=clamp(scrollY/max,0,1); lameP+=(p-lameP)*.06;
+let lameP=0, lameT0=0, lameSaved=null, cubeTex=null; const REDUCE=matchMedia('(prefers-reduced-motion: reduce)');
+function lameCam(now){ const max=Math.max(1,document.documentElement.scrollHeight-innerHeight); const p=clamp(scrollY/max,0,1); lameP= REDUCE.matches? p : lameP+(p-lameP)*.06; if(REDUCE.matches) now=0;
   const N=STATIONS.length, sv=lameP*(N-1), i=Math.min(N-2,Math.floor(sv)), f=sv-i, e=f*f*(3-2*f);
   const A=stops[i], B=stops[i+1], P=new THREE.Vector3().lerpVectors(A,B,e); P.y+=.8;
   const intro=clamp(1-lameP*9,0,1), ie=intro*intro*(3-2*intro); const over=new THREE.Vector3(Math.sin(now/9000)*3,13,26);
   P.lerp(over,ie); const L=stopLook(i).lerp(stopLook(i+1),e); L.lerp(new THREE.Vector3(0,5,-22),ie);
   cam.position.copy(P); cam.position.x+=Math.sin(now/5200)*.25; cam.lookAt(L); applyLight(cam.position.z);
-  clouds3.forEach(c=>{ c.position.x+=.01; if(c.position.x>95) c.position.x=-95; }); renderer.render(scene,cam); }
-function enterLame(){ audioInit(); SFX.click(); if(!shots) shots=renderShots(); mode='lame'; setZone('title');
+  if(!REDUCE.matches) clouds3.forEach(c=>{ c.position.x+=.01; if(c.position.x>95) c.position.x=-95; }); renderer.render(scene,cam); }
+function enterLame(){ audioInit(); SFX.click(); if(!shots&&world3) shots=renderShots(); const shotsNow=shots||{}; mode='lame'; setZone('title');
   document.body.classList.remove('in-world'); document.body.classList.add('lame-on');
   ['#title','#spacer','#hud','#loading'].forEach(s=>$(s).classList.add('hidden')); $('#pano').classList.remove('on');
-  if(world3){ cv.classList.remove('hidden','blur'); STATIONS.forEach(st=>{ st.built=true; st.bt=st.bt||1; st.thud=1; st.group.scale.setScalar(1); }); resize3(); } else cv.classList.add('hidden');
-  const bg=k=>shots[k]?`style="background-image:url(${shots[k]})"`:'';
+  if(world3){ cv.classList.remove('hidden','blur'); lameSaved=STATIONS.map(st=>({built:st.built,bt:st.bt,thud:st.thud,sc:st.group.scale.x})); STATIONS.forEach(st=>{ st.built=true; st.bt=st.bt||1; st.thud=1; st.group.scale.setScalar(1); }); resize3(); } else cv.classList.add('hidden');
+  const bg=k=>shotsNow[k]?`style="background-image:url(${shotsNow[k]})"`:'';
   const card=(tag,img,h,p,extra='')=>`<article class="card"><div class="im" ${bg(img)}><span class="tag">${tag}</span></div><div class="bd"><h3>${h}</h3><p>${p}</p>${extra}</div></article>`;
   const cube=tx=>`<div class="cube" aria-hidden="true">${[0,1,2,3,4,5].map(n=>`<i style="background-image:url(${tx[n===4?1:n===5?2:0]})"></i>`).join('')}</div>`;
   const tx=n=>{ const c=mk(32,32),g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(T[n].c,0,0,32,32); return c.toDataURL(); };
-  const cubes=[[tx('grass'),tx('grasstop'),tx('dirt')],[tx('craft'),tx('crafttop'),tx('planks')],[tx('gemore'),tx('gemore'),tx('gemore')],[tx('log'),tx('logtop'),tx('logtop')],[tx('chest'),tx('chest'),tx('chest')],[tx('stone'),tx('stone'),tx('stone')]];
+  const cubes=cubeTex||(cubeTex=[[tx('grass'),tx('grasstop'),tx('dirt')],[tx('craft'),tx('crafttop'),tx('planks')],[tx('gemore'),tx('gemore'),tx('gemore')],[tx('log'),tx('logtop'),tx('logtop')],[tx('chest'),tx('chest'),tx('chest')],[tx('stone'),tx('stone'),tx('stone')]]);
   const days=daysToGo(); const lock=`<div class="locked"><img class="lockico" src="${ICON.chest}" alt="">Locked until it is ready</div>`;
   $('#lame').innerHTML=`<header class="lh"><canvas id="lameLogo" role="img" aria-label="RiceCraft"></canvas><nav class="row"><button class="mc out" data-l="world">Play RiceCraft</button></nav></header>
   <section class="hero"><canvas id="lameHero" role="img" aria-label="RiceCraft"></canvas>
@@ -1220,7 +1220,8 @@ function enterLame(){ audioInit(); SFX.click(); if(!shots) shots=renderShots(); 
   const hero=$('#lameHero'), W=Math.min(900,innerWidth-32); const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const anim=now=>{ if(mode!=='lame') return; const t=reduce?1:clamp((now-lameT0)/1500,0,1); drawLogoDrop(hero,W,t); if(t<1) requestAnimationFrame(anim); else SFX.thud(); }; requestAnimationFrame(anim); }
 $('#lame').addEventListener('click',e=>{ const b=e.target.closest('[data-l]'); if(!b) return; SFX.click(); if(b.dataset.l==='world'){ $('#lame').classList.add('hidden'); document.body.classList.remove('lame-on'); joinWorldFromLame(); } });
-function joinWorldFromLame(){ $('#title').classList.add('hidden'); worldReady.then(enterWorld); }
+function restoreFromLame(){ if(!lameSaved) return; STATIONS.forEach((st,i)=>{ const v=lameSaved[i]; st.built=v.built; st.bt=v.bt; st.thud=v.thud; st.group.scale.setScalar(v.sc); }); lameSaved=null; }
+function joinWorldFromLame(){ restoreFromLame(); $('#title').classList.add('hidden'); worldReady.then(enterWorld); }
 $('#lameBtn').addEventListener('click',enterLame);
 
 $('#joinBtn').addEventListener('click',joinWorld);
