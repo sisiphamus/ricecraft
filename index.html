@@ -909,8 +909,8 @@ function resize3(){ if(!renderer) return; renderer.setSize(innerWidth,innerHeigh
   stops=STATIONS.map(st=>new THREE.Vector3(st.center.x+st.n.x*d, EYE, st.z+st.n.z*d));
   // one walk step per sign. It follows the screen width only, so the phone's address bar
   // sliding in and out (which changes the height) never moves the walk under the visitor's thumb.
-  if(innerWidth!==stepW||!STEP){ stepW=innerWidth; STEP=Math.round(innerHeight*1.1); }
-  const sp=$('#spacer'); sp.style.height=Math.round(STEP*(STATIONS.length-1)+STEP/1.1)+'px';
+  if(innerWidth!==stepW||!STEP){ const at=STEP?scrollY/STEP:0; stepW=innerWidth; STEP=Math.round(innerHeight*1.1); if(at&&mode==='world') requestAnimationFrame(()=>window.scrollTo(0,Math.round(at)*STEP)); }
+  const sp=$('#spacer'); sp.style.height=`calc(${STEP*(STATIONS.length-1)}px + 100lvh)`; if(!CSS.supports('height','100lvh')) sp.style.height=Math.round(STEP*(STATIONS.length-1)+innerHeight)+'px';
   if(sp.children.length!==STATIONS.length){ sp.innerHTML=STATIONS.map(()=>'<i class="snap"></i>').join(''); }
   [...sp.children].forEach((el,i)=>el.style.top=(i*STEP)+'px'); }
 let STEP=0, stepW=0;
