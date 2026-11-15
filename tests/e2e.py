@@ -18,7 +18,7 @@ def check(name, ok, detail=''):
     print(('PASS ' if ok else 'FAIL ') + name + (f'  ({detail})' if detail else ''), flush=True)
 
 async def go_stop(pg, i):
-    await pg.evaluate(f'window.scrollTo(0,{i}*innerHeight*1.1)')
+    await pg.evaluate(f'window.scrollTo(0,{i}*STEP)')
     await pg.wait_for_function(f'Math.abs(sNow-{i})<0.02', timeout=240000)
     await pg.wait_for_timeout(1200)
 

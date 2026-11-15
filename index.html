@@ -79,7 +79,10 @@ img{image-rendering:pixelated}
 .recipe-out img{width:28px;height:28px}
 .board a.btn,.board button.btn{margin-top:10px;font-size:17px;height:40px;line-height:36px;text-decoration:none}
 
-#spacer{width:1px}
+#spacer{width:1px;position:relative}
+#spacer .snap{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start}
+html.snap-walk{scroll-snap-type:y mandatory}
+body.in-world{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 #cross{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);opacity:.75}
 #cross::before,#cross::after{content:"";position:absolute;background:#fff;mix-blend-mode:difference}
@@ -872,7 +875,7 @@ function glowTex(){ const c=mk(64,64),g=c.getContext('2d'),gr=g.createRadialGrad
 function build3D(){
   portraitBuild = innerWidth/innerHeight < 1;
   renderer=new THREE.WebGLRenderer({canvas:cv,antialias:false,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio||1, isTouch?1.5:2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1, isTouch?1.25:2));
   scene=new THREE.Scene(); scene.fog=new THREE.Fog('#c4dcff',40,125);
   skyDome=new THREE.Mesh(new THREE.SphereGeometry(190,24,12),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,
     uniforms:{top:{value:new THREE.Color('#4f8ff0')},hor:{value:new THREE.Color('#c4dcff')},dark:{value:0}},
@@ -904,7 +907,13 @@ function build3D(){
 function resize3(){ if(!renderer) return; renderer.setSize(innerWidth,innerHeight,false); cam.aspect=innerWidth/innerHeight; cam.updateProjectionMatrix();
   const tanh=Math.tan(THREE.MathUtils.degToRad(cam.fov/2)), SW=portraitBuild?4.6:6, d=Math.max(portraitBuild?4.6:5.7, SW*(portraitBuild?1.16:1.5)/(2*tanh*cam.aspect));
   stops=STATIONS.map(st=>new THREE.Vector3(st.center.x+st.n.x*d, EYE, st.z+st.n.z*d));
-  $('#spacer').style.height=Math.round(innerHeight*(1+1.1*(STATIONS.length-1)))+'px'; }
+  // one walk step per sign. It follows the screen width only, so the phone's address bar
+  // sliding in and out (which changes the height) never moves the walk under the visitor's thumb.
+  if(innerWidth!==stepW||!STEP){ stepW=innerWidth; STEP=Math.round(innerHeight*1.1); }
+  const sp=$('#spacer'); sp.style.height=Math.round(STEP*(STATIONS.length-1)+STEP/1.1)+'px';
+  if(sp.children.length!==STATIONS.length){ sp.innerHTML=STATIONS.map(()=>'<i class="snap"></i>').join(''); }
+  [...sp.children].forEach((el,i)=>el.style.top=(i*STEP)+'px'); }
+let STEP=0, stepW=0;
 
 /* ---- picking blocks (voxel ray walk) ---- */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
@@ -959,7 +968,7 @@ function titleCam(now){ const a=now*.000045; cam.position.set(Math.sin(a*.7)*4,8
   cam.lookAt(cam.position.x+Math.sin(yaw)*30, 5.5, cam.position.z-Math.cos(yaw)*30); applyLight(cam.position.z); }
 let lastHover=0;
 function frame3(dt,now){
-  const N=STATIONS.length, sT=clamp(scrollY/(innerHeight*1.1),0,N-1);
+  const N=STATIONS.length, sT=clamp(scrollY/STEP,0,N-1);
   sNow += (sT-sNow)*(1-Math.exp(-dt*6)); if(Math.abs(sT-sNow)<1e-4) sNow=sT;
   const i=Math.min(N-2,Math.floor(sNow)), f=sNow-i, g=clamp((f-.18)/.64,0,1), e=g*g*(3-2*g);
   const A=stops[i], B=stops[i+1], C=new THREE.Vector3((A.x+B.x)*.1, EYE, (A.z+B.z)/2);
@@ -1012,7 +1021,7 @@ addEventListener('pointercancel',()=>{ ptr.down=false; clearTimeout(ptr.hold); s
 cv.addEventListener('pointermove',e=>{ ptr.x=e.clientX; ptr.y=e.clientY; ptr.inside=true; });
 cv.addEventListener('pointerleave',()=>{ ptr.inside=false; if(selBox) selBox.visible=false; hideTip(); });
 cv.addEventListener('contextmenu',e=>e.preventDefault());
-function goStation(dir){ const N=STATIONS.length; const n=clamp(Math.round(sNow)+dir,0,N-1); window.scrollTo({top:n*innerHeight*1.1,behavior:'smooth'}); }
+function goStation(dir){ const N=STATIONS.length; const n=clamp(Math.round(sNow)+dir,0,N-1); window.scrollTo({top:n*STEP,behavior:'smooth'}); }
 addEventListener('keydown',e=>{ if(mode!=='world'||guiMode) return; if(['ArrowDown','PageDown',' ','s','S'].includes(e.key)){ e.preventDefault(); goStation(1); } if(['ArrowUp','PageUp','w','W'].includes(e.key)){ e.preventDefault(); goStation(-1); } });
 
 /* ---------- state ---------- */
@@ -1156,7 +1165,7 @@ $('#menuBtn').addEventListener('click',()=>{ SFX.click(); openMenu('pause'); });
    ========================================================= */
 let mode='title';
 function showWorldCanvas(blur){ cv.classList.remove('hidden'); cv.classList.toggle('blur',!!blur); }
-function toTitle(){ mode='title'; setZone('title'); document.body.classList.remove('in-world','lame-on'); window.scrollTo(0,0);
+function toTitle(){ document.documentElement.classList.remove('snap-walk'); mode='title'; setZone('title'); document.body.classList.remove('in-world','lame-on'); window.scrollTo(0,0);
   ['#spacer','#hud','#lame'].forEach(s=>$(s).classList.add('hidden')); if(world3) showWorldCanvas(true); else $('#pano').classList.add('on');
   $('#title').classList.remove('hidden','fade'); hand_.classList.remove('up'); }
 function joinWorld(){ audioInit(); SFX.click(); $('#title').classList.add('fade'); const ld=$('#loading'), bar=$('#loadBar'), st=$('#loadStep');
@@ -1165,7 +1174,7 @@ function joinWorld(){ audioInit(); SFX.click(); $('#title').classList.add('fade'
     Promise.all([worldReady,new Promise(r=>setTimeout(r,steps.length*220+200))]).then(()=>{ ld.classList.add('hidden'); enterWorld(); }); },350); }
 function pickMineMark(){ cam.position.copy(stops[0]); cam.lookAt(STATIONS[0].center); cam.updateMatrixWorld();
   for(const fy of [.8,.75,.85,.7]) for(const fx of [.22,.78,.3,.7,.15,.85]){ const c=pick(innerWidth*fx,innerHeight*fy); if(c&&(c.t==='grass'||c.t==='dirt')&&!BP[c.t].special) return c; } return null; }
-function enterWorld(){ mode='world'; document.body.classList.add('in-world'); document.body.classList.remove('lame-on');
+function enterWorld(){ mode='world'; document.body.classList.add('in-world'); document.documentElement.classList.toggle('snap-walk',isTouch); document.body.classList.remove('lame-on');
   ['#spacer','#hud'].forEach(s=>$(s).classList.remove('hidden')); $('#lame').classList.add('hidden'); $('#pano').classList.remove('on');
   if(!world3){ toast('Could not start the 3D view','Your browser blocked WebGL. Try Lame mode.','pick'); return; }
   showWorldCanvas(false); resize3(); window.scrollTo(0,0); sNow=0; $('#walkHint').textContent=isTouch?'Swipe to walk':'Scroll to walk';
@@ -1195,7 +1204,7 @@ function lameCam(now){ const max=Math.max(1,document.documentElement.scrollHeigh
   P.lerp(over,ie); const L=stopLook(i).lerp(stopLook(i+1),e); L.lerp(new THREE.Vector3(0,5,-22),ie);
   cam.position.copy(P); cam.position.x+=Math.sin(now/5200)*.25; cam.lookAt(L); applyLight(cam.position.z);
   if(!REDUCE.matches) clouds3.forEach(c=>{ c.position.x+=.01; if(c.position.x>95) c.position.x=-95; }); renderer.render(scene,cam); }
-function enterLame(){ audioInit(); SFX.click(); if(!shots&&world3) shots=renderShots(); const shotsNow=shots||{}; mode='lame'; setZone('title');
+function enterLame(){ document.documentElement.classList.remove('snap-walk'); audioInit(); SFX.click(); if(!shots&&world3) shots=renderShots(); const shotsNow=shots||{}; mode='lame'; setZone('title');
   document.body.classList.remove('in-world'); document.body.classList.add('lame-on');
   ['#title','#spacer','#hud','#loading'].forEach(s=>$(s).classList.add('hidden')); $('#pano').classList.remove('on');
   if(world3){ cv.classList.remove('hidden','blur'); lameSaved=STATIONS.map(st=>({built:st.built,bt:st.bt,thud:st.thud,sc:st.group.scale.x})); STATIONS.forEach(st=>{ st.built=true; st.bt=st.bt||1; st.thud=1; st.group.scale.setScalar(1); }); resize3(); } else cv.classList.add('hidden');
