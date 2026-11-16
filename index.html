@@ -1179,7 +1179,7 @@ $('#menuBtn').addEventListener('click',()=>{ SFX.click(); openMenu('pause'); });
 let mode='title';
 function showWorldCanvas(blur){ cv.classList.remove('hidden'); cv.classList.toggle('blur',!!blur); }
 function toTitle(){ document.documentElement.classList.remove('snap-walk'); mode='title'; setZone('title'); document.body.classList.remove('in-world','lame-on'); window.scrollTo(0,0);
-  ['#spacer','#hud','#lame'].forEach(s=>$(s).classList.add('hidden')); if(world3) showWorldCanvas(true); else $('#pano').classList.add('on');
+  ['#spacer','#hud','#lame'].forEach(s=>$(s).classList.add('hidden')); if(world3) showWorldCanvas(true); else { if(!panoImg) buildPano(); $('#pano').classList.add('on'); }
   $('#title').classList.remove('hidden','fade'); hand_.classList.remove('up'); }
 function joinWorld(){ audioInit(); SFX.click(); $('#title').classList.add('fade'); const ld=$('#loading'), bar=$('#loadBar'), st=$('#loadStep');
   setTimeout(()=>{ $('#title').classList.add('hidden'); ld.classList.remove('hidden'); bar.style.width='0';
@@ -1253,7 +1253,7 @@ $('#lame').addEventListener('click',e=>{ const b=e.target.closest('[data-l]'); i
   if(b.dataset.l==='login'){ restoreFromLame(); toTitle(); } });
 function restoreFromLame(){ if(!lameSaved) return; STATIONS.forEach((st,i)=>{ const v=lameSaved[i]; st.built=v.built; st.bt=v.bt; st.thud=v.thud; st.group.scale.setScalar(v.sc); }); lameSaved=null; }
 function joinWorldFromLame(){ restoreFromLame(); $('#title').classList.add('hidden'); worldReady.then(enterWorld); }
-$('#lameBtn').addEventListener('click',enterLame);
+$('#lameBtn').addEventListener('click',()=>enterLame());
 
 $('#joinBtn').addEventListener('click',joinWorld);
 $('#optBtn').addEventListener('click',()=>{ audioInit(); SFX.click(); openMenu('options'); });
@@ -1262,7 +1262,7 @@ let rT; addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(()=>{ dr
 
 drawLogo(); requestAnimationFrame(frame); enterLame(true);
 const fontsReady = document.fonts? Promise.race([Promise.all([document.fonts.load('40px VT323'),document.fonts.load('40px "Press Start 2P"')]),new Promise(r=>setTimeout(r,2500))]).catch(()=>{}) : Promise.resolve();
-const worldReady = fontsReady.then(()=>{ try{ build3D(); cv.classList.toggle('blur',mode==='title'); if(mode==='title') showWorldCanvas(true);
+const worldReady = fontsReady.then(()=>{ try{ build3D(); $('#pano').classList.remove('on'); cv.classList.toggle('blur',mode==='title'); if(mode==='title') showWorldCanvas(true);
     if(mode==='lame'){ lameWorldOn(); shots=renderShots(); document.querySelectorAll('#lame .im[data-shot]').forEach(el=>{ const k=el.dataset.shot; if(shots[k]) el.style.backgroundImage=`url(${shots[k]})`; }); } }catch(err){ console.error(err); buildPano(); $('#pano').classList.add('on'); } });
 </script>
 </body>
