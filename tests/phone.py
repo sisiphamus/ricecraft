@@ -23,6 +23,9 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(URL, timeout=120000)
         await pg.wait_for_function('world3', timeout=180000)
+        # the plain page opens first; Login leads to the game's title screen
+        await pg.click('#lame .lh [data-l="login"]')
+        await pg.wait_for_timeout(800)
         await pg.tap('#joinBtn')
         await pg.wait_for_function("mode==='world'", timeout=60000)
         await pg.wait_for_timeout(2500)
