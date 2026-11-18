@@ -172,7 +172,7 @@ body:not(.in-world) .sound-hint{bottom:96px}
 #lame .spslots span{margin-top:6px}
 #lame .addr{text-align:center;color:#c4c0b8;font-size:16px;user-select:all}
 #lame .cards.one{max-width:620px;margin:0 auto;grid-template-columns:1fr}
-@media (max-width:600px){ #lame .details{grid-template-columns:1fr;gap:4px 0} #lame .details dd{margin-bottom:12px} #lame .spslots .slot{width:96px} }
+@media (max-width:600px){ #lame .lh nav.row{flex-wrap:nowrap;gap:6px} #lame .lh .mc.out{padding:8px 9px 9px;font-size:12px;gap:6px} #lame .lh .mc.out::after{content:none} #lame .lh canvas{max-width:40vw;min-width:0} #lame .details{grid-template-columns:1fr;gap:4px 0} #lame .details dd{margin-bottom:12px} #lame .spslots .slot{width:96px} }
 #lame footer{margin-top:110px;padding:30px max(16px,6vw) 36px;color:#a8a39b;font-size:14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;border-top:2px solid #0d0d0c;background:rgba(18,17,16,.95)}
 @media (prefers-reduced-motion:reduce){ #lame .cube,#lame .ench,#lame .scrollcue{animation:none} }
 /* ---------- HUD ---------- */
@@ -207,7 +207,7 @@ body:not(.in-world) .sound-hint{bottom:96px}
 #tip em{display:block;color:#9fe36c;font-style:normal;font-size:13px;text-shadow:none}
 
 /* ---------- GUI ---------- */
-#gui{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(8,6,10,.62);padding:12px;overflow:auto}
+#gui{position:fixed;inset:0;z-index:40;display:flex;align-items:safe center;justify-content:center;background:rgba(8,6,10,.62);padding:12px;overflow:auto}
 .panel{position:relative;background:var(--panel);color:var(--ink);box-shadow:0 0 0 2px #0f0e0c,inset 3px 3px 0 var(--panel-hi),inset -3px -3px 0 var(--panel-lo);padding:14px 16px 16px;font-size:16px;animation:pop .18s steps(3)}
 @keyframes pop{from{transform:scale(.92)}}
 .panel h3{margin:0 0 8px;font-size:22px;font-weight:500;color:var(--ink)}
@@ -264,6 +264,26 @@ body:not(.in-world) .sound-hint{bottom:96px}
 .range .knob{position:absolute;top:0;bottom:0;width:16px;background:var(--stone-bg) 0 0/48px 48px;box-shadow:0 0 0 2px #0d0d0d,inset 2px 2px 0 rgba(255,255,255,.4),inset -2px -2px 0 rgba(0,0,0,.45);pointer-events:none}
 .range span{position:relative;pointer-events:none}
 .note{font-size:13.5px;color:#5c5446;text-align:center}
+/* waitlist: a game-style sign-up screen */
+.wl{width:min(440px,94vw);padding:18px 18px 18px;margin:auto}
+.mcin:-webkit-autofill,.mcin:-webkit-autofill:focus{-webkit-text-fill-color:#fff;-webkit-box-shadow:0 0 0 40px #000 inset;caret-color:#fff}
+.wl .wl-h{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.wl .wl-h img{width:40px;height:40px}
+.wl h3{margin:0;font-size:28px;line-height:1}
+.wl .wl-sub{margin:4px 0 14px;font-size:19px;line-height:1.25;color:#4a443a}
+.wl label{display:block;margin:0 0 4px;font-size:19px;color:#3a352d}
+.mcin{display:block;width:100%;height:44px;margin:0 0 12px;padding:0 10px;background:#000;color:#fff;border:2px solid #a0a0a0;outline:0;font:22px/1 VT323,monospace;caret-color:#fff;-webkit-user-select:text;user-select:text;border-radius:0;-webkit-appearance:none;appearance:none}
+.mcin:focus{border-color:#fff;box-shadow:0 0 0 2px #0d0d0d}
+.mcin::placeholder{color:#6f6f6f}
+.mcin.bad{border-color:#ff5555}
+.wl .msg{min-height:22px;margin:0 0 10px;max-width:none}
+.wl .msg.info{color:#4a443a}
+.wl .btn-row .btn{flex:1;font-size:24px}
+.wl .wl-ok{text-align:center;padding:6px 0 4px}
+.wl .wl-ok img{width:64px;height:64px;display:block;margin:6px auto 10px}
+.wl .wl-ok b{display:block;font-size:30px;color:#2f6a1c;font-weight:600}
+.wl .wl-ok p{margin:6px 0 14px;font-size:20px;color:#3a352d}
+.wl .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 #held{position:fixed;z-index:70;width:34px;height:34px;pointer-events:none;transform:translate(-50%,-50%)}
 #held img{width:100%;height:100%}
 #held .cnt{right:-4px;bottom:-4px}
@@ -305,6 +325,7 @@ body:not(.in-world) .sound-hint{bottom:96px}
     <div class="sub">Rice Spring Hack · Feb 5 to 7, 2027</div>
     <div class="menu">
       <button class="btn" id="joinBtn">Join World</button>
+      <button class="btn" id="wlBtn">Join Waitlist</button>
       <button class="btn" id="optBtn">Options…</button>
     </div>
     <div class="sound-hint" id="soundHint">♪ click anywhere for sound</div>
@@ -358,7 +379,9 @@ const CONFIG = {
   size: 'About 200 students',
   hosts: ['Claude Club', 'OpenAI Club', 'ML Club', 'Rice Racing', 'Liu Idea Lab', 'School of Engineering and Computing'],
   sponsorContact: '', // email for sponsor questions, shown on the plain page when filled in
-  applyUrl: '' // paste the application link here when it opens
+  applyUrl: '', // paste the application link here when it opens
+  // Waitlist: answers go to the Google Form "RiceCraft waitlist" (towneradamm@gmail.com, Responses tab)
+  waitlist: { action: 'https://docs.google.com/forms/d/e/1FAIpQLScreqced3OupT8sqooGovTMUkrNV0_i5_QjYVA0Xcl42zXPMw/formResponse', name: 'entry.1501410818', email: 'entry.1764343551' }
 };
 
 /* ---------- tiny utils ---------- */
@@ -1077,8 +1100,8 @@ function guiOpen(){ return !!guiMode; }
 function closeGui(){ if(!guiMode) return; // return items
   grid9.forEach((s,i)=>{ if(s){ addItem(s.id,s.n); grid9[i]=null; } }); enchSlots.forEach((s,i)=>{ if(s){ addItem(s.id,s.n); enchSlots[i]=null; } });
   if(hand){ addItem(hand.id,hand.n); hand=null; } ghosts=[]; heldEl.classList.add('hidden');
-  const back=guiBack; guiMode=null; guiBack=null; lockScroll(false); gui.classList.add('hidden'); gui.innerHTML=''; hideTip(); renderHotbar();
-  if(back) back(); }
+  const wasWl=guiMode==='waitlist'; const back=guiBack; guiMode=null; guiBack=null; lockScroll(false); gui.classList.add('hidden'); gui.innerHTML=''; hideTip(); renderHotbar();
+  if(back) back(); else if(wasWl&&wlOpener&&wlOpener.isConnected&&wlOpener.focus){ try{ wlOpener.focus({preventScroll:true}); }catch(e){} } }
 function invRows(){ let h='<h3>Inventory</h3><div class="row9">'; for(let i=9;i<27;i++) h+=`<div class="slot" data-k="inv:${i}"></div>`; h+='</div><div class="gap"></div><div class="row9">'; for(let i=0;i<9;i++) h+=`<div class="slot" data-k="inv:${i}"></div>`; return h+'</div>'; }
 function lockScroll(on){ document.body.style.overflow=on?'hidden':''; }
 function openGui(kind,where){ SFX.open(); guiMode=kind; gui.classList.remove('hidden'); hideTip(); lockScroll(true);
@@ -1114,7 +1137,7 @@ gui.addEventListener('pointermove',e=>{ heldEl.style.left=e.clientX+'px'; heldEl
   const o=e.target.closest('.opt'); if(o){ showTip(e,null,{name:o.classList.contains('on')?o.dataset.name:'???',hint:o.classList.contains('on')?'Costs 1 Diamond':'Needs a scroll and a gem'}); return; } hideTip(); });
 gui.addEventListener('pointerdown',e=>{
   const el=e.target.closest('[data-k]'), right=e.button===2;
-  if(e.target===gui){ closeGui(); return; }
+  if(e.target===gui){ if(guiMode==='waitlist'){ const v=[...gui.querySelectorAll('.mcin')].some(i=>i.value.trim()); if(v) return; } closeGui(); return; }
   if(e.target.closest('[data-a="book"]')){ showBook=!showBook; const keep=guiMode; guiMode=null; openGui(keep); return; }
   const rec=e.target.closest('[data-rec]'); if(rec){ autofill(RECIPES[+rec.dataset.rec]); return; }
   const opt=e.target.closest('.opt'); if(opt){ if(opt.classList.contains('on')) doEnchant(opt.dataset.name); return; }
@@ -1146,13 +1169,13 @@ function doEnchant(name){ enchSlots[1].n--; if(!enchSlots[1].n) enchSlots[1]=nul
 const PAGES={
   schedule:()=>({icon:'map',title:'Schedule',body:`<p><b>${CONFIG.days}</b></p><p>${CONFIG.where}</p><p class="soon">The hour by hour schedule will be posted here.</p>`}),
   sponsors:()=>({icon:'chest',title:'Sponsors',body:`<p class="soon">Sponsors will be announced here.</p><p>${CONFIG.event} · ${CONFIG.dates} · ${CONFIG.size.toLowerCase()}.</p>`}),
-  apply:()=>({icon:'escroll',title:'Apply',body: CONFIG.applyUrl?`<p>Your scroll is ready.</p><p><a class="btn" href="${CONFIG.applyUrl}" target="_blank" rel="noopener">Open the application</a></p>`:`<p><b>Applications open soon.</b></p><p>${CONFIG.event}, ${CONFIG.dates}, ${CONFIG.where}.</p><p class="soon">The application link will be posted here when it opens.</p>`})
+  apply:()=>({icon:'escroll',title:'Apply',body: CONFIG.applyUrl?`<p>Your scroll is ready.</p><p><a class="btn" href="${CONFIG.applyUrl}" target="_blank" rel="noopener">Open the application</a></p>`:`<p>${CONFIG.event}, ${CONFIG.dates}, ${CONFIG.where}.</p><p><button class="btn" data-a="waitlist">Join the waitlist</button></p>`})
 };
 function openBook(key){ if(guiMode) closeGui(); const p=PAGES[key](); guiMode='book'; gui.classList.remove('hidden'); lockScroll(true); SFX.open();
   gui.innerHTML=`<div class="book"><div class="bh">${imgTag(p.icon)}<h4>${p.title}</h4></div><div class="pg">${p.body}</div><div class="foot"><span>${key.startsWith('sign_')?'A sign you mined':'Page '+([...unlocked].indexOf(key)+1)+' of 3'}</span><button class="btn" data-a="done">Done</button></div></div>`;
   gui.querySelector('[data-a="done"]').addEventListener('click',()=>{ SFX.click(); closeGui(); }); }
 function openMenu(kind,back){ if(guiMode) closeGui(); guiMode=kind; guiBack=back||null; gui.classList.remove('hidden'); if(mode==='world') lockScroll(true);
-  if(kind==='pause'){ gui.innerHTML=`<div class="opts-panel"><h3 style="color:#fff;text-shadow:2px 2px 0 #333">Game Menu</h3><button class="btn" data-a="resume">Back to World</button>${[...unlocked].map(k=>`<button class="btn" data-page="${k}">Read: ${{sponsors:'Sponsors',schedule:'Schedule',apply:'Apply'}[k]}</button>`).join('')}${CONFIG.applyUrl?`<a class="btn" href="${CONFIG.applyUrl}" target="_blank" rel="noopener" style="line-height:42px;text-align:center;text-decoration:none">Apply</a>`:''}<button class="btn" data-a="options">Options…</button><button class="btn" data-a="lame">Lame mode</button><button class="btn" data-a="title">Title Screen</button></div>`; }
+  if(kind==='pause'){ gui.innerHTML=`<div class="opts-panel"><h3 style="color:#fff;text-shadow:2px 2px 0 #333">Game Menu</h3><button class="btn" data-a="resume">Back to World</button><button class="btn" data-a="waitlist">Join Waitlist</button>${[...unlocked].map(k=>`<button class="btn" data-page="${k}">Read: ${{sponsors:'Sponsors',schedule:'Schedule',apply:'Apply'}[k]}</button>`).join('')}${CONFIG.applyUrl?`<a class="btn" href="${CONFIG.applyUrl}" target="_blank" rel="noopener" style="line-height:42px;text-align:center;text-decoration:none">Apply</a>`:''}<button class="btn" data-a="options">Options…</button><button class="btn" data-a="lame">Lame mode</button><button class="btn" data-a="title">Title Screen</button></div>`; }
   if(kind==='options'){ const vol=Math.round(SND.music*100);
     gui.innerHTML=`<div class="opts-panel"><h3 style="color:#fff;text-shadow:2px 2px 0 #333">Options</h3>
       <label class="range"><input type="range" min="0" max="100" value="${vol}" id="vol" aria-label="Music volume"><span class="knob" style="left:calc(${vol}% - ${vol*.16}px)"></span><span id="volT">Music: ${vol?vol+'%':'Off'}</span></label>
@@ -1166,12 +1189,46 @@ gui.addEventListener('click',e=>{ const pgb=e.target.closest('[data-page]'); if(
   if(k==='options'){ openMenu('options',()=>openMenu('pause')); }
   if(k==='title'){ closeGui(); toTitle(); }
   if(k==='lame'){ closeGui(); enterLame(); }
+  if(k==='waitlist'){ const from=guiMode; openWaitlist(from==='pause'?()=>openMenu('pause'):from==='book'?()=>openBook('apply'):null); }
+  if(k==='cancel'&&guiMode==='waitlist'){ closeGui(); }
   if(k==='sfx'){ SND.on=!SND.on; a.textContent='Sounds: '+(SND.on?'On':'Off'); }
   if(k==='done'&&guiMode==='options'){ closeGui(); } });
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(guiMode) closeGui(); else if(mode==='world') openMenu('pause'); }
   if(mode==='world'&&!guiMode&&/^[1-9]$/.test(e.key)){ selSlot=+e.key-1; renderHotbar(); } });
 $('#menuBtn').addEventListener('click',()=>{ SFX.click(); openMenu('pause'); });
 
+
+/* ---------- waitlist: name + email, sent to the Google Form in CONFIG.waitlist ---------- */
+const WL_KEY='ricecraft-waitlist';
+function wlJoined(){ try{ return localStorage.getItem(WL_KEY); }catch(e){ return null; } }
+function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function wlDone(name){ const p=gui.querySelector('.wl'); if(!p) return;
+  p.innerHTML=`<div class="wl-ok"><img src="${ICON.gem}" alt=""><b>You're on the list!</b><p>${name?esc(name.split(' ')[0])+', w':'W'}e'll email you when applications open for ${CONFIG.event}.</p><button class="btn" data-a="cancel">Done</button></div>`; }
+let wlOpener=null;
+function openWaitlist(back){ const opener=document.activeElement; if(guiMode) closeGui(); wlOpener=opener; guiMode='waitlist'; guiBack=back||null; gui.classList.remove('hidden'); lockScroll(true); SFX.open();
+  gui.innerHTML=`<form class="panel wl" novalidate autocomplete="on" role="dialog" aria-modal="true" aria-labelledby="wlTitle"><div class="wl-h"><img src="${ICON.scroll}" alt=""><h3 id="wlTitle">Join the Waitlist</h3></div>
+    <p class="wl-sub">${CONFIG.event} · ${CONFIG.dates}. We'll email you when applications open.</p>
+    <label for="wlName">Name</label><input class="mcin" id="wlName" name="name" type="text" autocomplete="name" maxlength="120" placeholder="Sammy Owl" required>
+    <label for="wlEmail">Email</label><input class="mcin" id="wlEmail" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="200" placeholder="you@rice.edu" required>
+    <input class="hp" name="rc_trap_x" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="msg${wlJoined()?' info':''}" id="wlMsg" role="status" aria-live="polite">${wlJoined()?'You already joined on this device. You can add someone else.':''}</div>
+    <div class="btn-row"><button class="btn" type="button" data-a="cancel">Cancel</button><button class="btn" type="submit" id="wlGo">Join</button></div></form>`;
+  const f=gui.querySelector('.wl'), nm=$('#wlName'), em=$('#wlEmail'), msg=$('#wlMsg'), go=$('#wlGo');
+  if(!isTouch) setTimeout(()=>nm.focus(),60);
+  [nm,em].forEach(i=>i.addEventListener('input',()=>i.classList.remove('bad')));
+  f.addEventListener('keydown',e=>{ if(e.key!=='Tab') return; const fs=[...f.querySelectorAll('input:not(.hp),button:not([disabled])')]; if(!fs.length) return; const a=fs[0], z=fs[fs.length-1];
+    if(e.shiftKey&&document.activeElement===a){ e.preventDefault(); z.focus(); } else if(!e.shiftKey&&document.activeElement===z){ e.preventDefault(); a.focus(); } });
+  f.addEventListener('submit',async e=>{ e.preventDefault(); const n=nm.value.trim().replace(/\s+/g,' '), m=em.value.trim();
+    msg.classList.remove('ok','info'); nm.classList.toggle('bad',!n); const okMail=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m); em.classList.toggle('bad',!okMail);
+    if(!n){ msg.textContent='Please enter your name.'; nm.focus(); return; }
+    if(!okMail){ msg.textContent='That email does not look right.'; em.focus(); return; }
+    go.disabled=true; go.textContent='Sending…'; msg.textContent='';
+    const body=new URLSearchParams(); body.set(CONFIG.waitlist.name,n); body.set(CONFIG.waitlist.email,m);
+    try{ await fetch(CONFIG.waitlist.action,{method:'POST',mode:'no-cors',body}); }
+    catch(err){ go.disabled=false; go.textContent='Join'; msg.textContent='Could not reach the server. Check your connection and try again.'; return; }
+    try{ localStorage.setItem(WL_KEY,'1'); }catch(e){}
+    if(!f.isConnected) return; SFX.unlock(); wlDone(n); if(mode==='world') toast('Joined the waitlist','We\'ll email you when applications open.','gem'); });
+}
 
 /* =========================================================
    FLOW
@@ -1228,14 +1285,14 @@ function enterLame(quiet){ document.documentElement.classList.remove('snap-walk'
   const tx=n=>{ const c=mk(32,32),g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(T[n].c,0,0,32,32); return c.toDataURL(); };
   const cubes=cubeTex||(cubeTex=[[tx('grass'),tx('grasstop'),tx('dirt')],[tx('craft'),tx('crafttop'),tx('planks')],[tx('gemore'),tx('gemore'),tx('gemore')],[tx('log'),tx('logtop'),tx('logtop')],[tx('chest'),tx('chest'),tx('chest')],[tx('stone'),tx('stone'),tx('stone')]]);
   const days=daysToGo(); const lock=`<div class="locked"><img class="lockico" src="${ICON.chest}" alt="">Locked until it is ready</div>`;
-  $('#lame').innerHTML=`<header class="lh"><canvas id="lameLogo" role="img" aria-label="RiceCraft"></canvas><nav class="row"><button class="mc out" data-l="login">Login</button></nav></header>
+  $('#lame').innerHTML=`<header class="lh"><canvas id="lameLogo" role="img" aria-label="RiceCraft"></canvas><nav class="row"><button class="mc out" data-l="waitlist">Waitlist</button><button class="mc out" data-l="login">Login</button></nav></header>
   <section class="hero"><canvas id="lameHero" role="img" aria-label="RiceCraft"></canvas>
     <div class="kicker">${CONFIG.event}</div><div class="facts">${CONFIG.days} · ${CONFIG.where}</div>
     ${days>0?`<div class="count"><div class="slot"><b>${days}</b><span>days to go</span></div><div class="slot"><b>~200</b><span>students</span></div><div class="slot"><b>${CONFIG.hosts.length}</b><span>hosts</span></div></div>`:''}
-    <div class="row"><span class="mc soon">Applications open soon</span><button class="mc" data-l="login">Login to play</button></div><div class="scrollcue">Scroll ↓</div></section>
+    <div class="row"><button class="mc" data-l="waitlist">Join the waitlist</button><button class="mc" data-l="login">Login to play</button></div><div class="scrollcue">Scroll ↓</div></section>
   <div class="wrapS"><section class="pane" id="details"><h2>Event details</h2><dl class="details">
     <dt>When</dt><dd>${CONFIG.days}</dd><dt>Where</dt><dd>${CONFIG.where}</dd><dt>Who</dt><dd>${CONFIG.size}</dd>
-    <dt>Hosts</dt><dd>${CONFIG.hosts.join(', ')}</dd><dt>Apply</dt><dd>${CONFIG.applyUrl?`<a href="${CONFIG.applyUrl}" target="_blank" rel="noopener">Open the application</a>`:'Applications open soon'}</dd>
+    <dt>Hosts</dt><dd>${CONFIG.hosts.join(', ')}</dd><dt>Apply</dt><dd>${CONFIG.applyUrl?`<a href="${CONFIG.applyUrl}" target="_blank" rel="noopener">Open the application</a>`:'<button class="mc out" data-l="waitlist">Join the waitlist</button>'}</dd>
     <dt>Sponsors</dt><dd>Being announced soon. <a href="#sponsors">See below</a></dd><dt>Schedule</dt><dd>Posted closer to the event</dd></dl></section></div>
   <div class="wrapS"><section class="pane"><h2>The weekend</h2><div class="cards">${card('When','when','Feb 5 to 7, 2027','Friday to Sunday.')}${card('Where','where','Rice University',CONFIG.where+'.')}${card('Who','who',CONFIG.size,'The hosts are listed below.')}</div></section></div>
   <div class="wrapS"><section class="pane"><h2>Hosted by</h2><div class="hosts">${CONFIG.hosts.map((h,i)=>`<div class="host">${cube(cubes[i%cubes.length])}<span>${h}</span></div>`).join('')}</div></section></div>
@@ -1243,19 +1300,21 @@ function enterLame(quiet){ document.documentElement.classList.remove('snap-walk'
     <div class="spslots">${[0,1,2,3,4,5].map(()=>`<div class="slot"><img src="${ICON.chest}" alt=""><span>Soon</span></div>`).join('')}</div>
     ${CONFIG.sponsorContact?`<p class="lead">Want to sponsor ${CONFIG.event}? <a class="mc" href="mailto:${CONFIG.sponsorContact}">Email the organizers</a></p><p class="addr">${CONFIG.sponsorContact}</p>`:''}</section></div>
   <div class="wrapS"><section class="pane" id="schedule"><h2>Schedule</h2><div class="cards one">${card('Schedule','schedule','Schedule','The hour by hour schedule will be posted here.',lock)}</div></section></div>
-  <div class="wrapS"><section class="pane apply"><h2 class="ench">Apply</h2><p>Applications open soon. ${CONFIG.event}, ${CONFIG.dates}, ${CONFIG.where}.</p>${CONFIG.applyUrl?`<a class="mc" href="${CONFIG.applyUrl}" target="_blank" rel="noopener">Apply now</a>`:`<span class="mc soon">Opening soon</span>`}</section></div>
+  <div class="wrapS"><section class="pane apply"><h2 class="ench">Apply</h2><p>${CONFIG.event}, ${CONFIG.dates}, ${CONFIG.where}.</p>${CONFIG.applyUrl?`<a class="mc" href="${CONFIG.applyUrl}" target="_blank" rel="noopener">Apply now</a>`:`<button class="mc" data-l="waitlist">Join the waitlist</button>`}</section></div>
   <footer><span>RiceCraft · ${CONFIG.event} · ${CONFIG.where}</span><span>Fan-made. Not affiliated with Mojang or Microsoft.</span></footer>`;
   drawLogo($('#lameLogo'),220); $('#lameLogo').style.height='34px'; $('#lameLogo').style.width='auto';
   $('#lame').classList.remove('hidden'); window.scrollTo(0,0); lameP=0; lameT0=performance.now();
   const hero=$('#lameHero'), W=Math.min(900,innerWidth-32); const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const anim=now=>{ if(mode!=='lame') return; const t=reduce?1:clamp((now-lameT0)/1500,0,1); drawLogoDrop(hero,W,t); if(t<1) requestAnimationFrame(anim); else SFX.thud(); }; requestAnimationFrame(anim); }
 $('#lame').addEventListener('click',e=>{ const b=e.target.closest('[data-l]'); if(!b) return; SFX.click(); if(b.dataset.l==='world'){ $('#lame').classList.add('hidden'); document.body.classList.remove('lame-on'); joinWorldFromLame(); }
-  if(b.dataset.l==='login'){ restoreFromLame(); toTitle(); } });
+  if(b.dataset.l==='login'){ restoreFromLame(); toTitle(); }
+  if(b.dataset.l==='waitlist'){ openWaitlist(); } });
 function restoreFromLame(){ if(!lameSaved) return; STATIONS.forEach((st,i)=>{ const v=lameSaved[i]; st.built=v.built; st.bt=v.bt; st.thud=v.thud; st.group.scale.setScalar(v.sc); }); lameSaved=null; }
 function joinWorldFromLame(){ restoreFromLame(); $('#title').classList.add('hidden'); worldReady.then(enterWorld); }
 $('#lameBtn').addEventListener('click',()=>enterLame());
 
 $('#joinBtn').addEventListener('click',joinWorld);
+$('#wlBtn').addEventListener('click',()=>{ audioInit(); SFX.click(); openWaitlist(); });
 $('#optBtn').addEventListener('click',()=>{ audioInit(); SFX.click(); openMenu('options'); });
 $('#title').addEventListener('pointerdown',()=>{ audioInit(); $('#soundHint').classList.add('hidden'); },{once:true});
 let rT; addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(()=>{ drawLogo(); if(world3) resize3(); else buildPano(); },120); });
